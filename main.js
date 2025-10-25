@@ -45,7 +45,13 @@ async function startServer() {
   server.on('error', (err) => {
     console.error('Помилка сервера:', err.message);
   });
+  const { XMLBuilder } = require('fast-xml-parser');
+
+// Створення XML
+const builder = new XMLBuilder();
+const xml = builder.build(yourData);
 }
 
 startServer().catch(console.error);
+
 
