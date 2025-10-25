@@ -11,12 +11,17 @@ program
   .parse(process.argv);
 
 const options = program.opts();
+
 console.log('DEBUG: Options received:', options);
 
+// Перевірка параметрів
 if (!options.input || !options.host || !options.port) {
   console.error('Error: Missing required parameters');
   process.exit(1);
 }
+
+// Запуск сервера після перевірки файлу
+start();
 
 async function start() {
   try {
@@ -28,9 +33,6 @@ async function start() {
   }
 }
 
-start();
-
-// Функція для безпечного вставлення значень у XML
 function escapeXml(unsafe) {
   return unsafe.replace(/[<>&'"]/g, c => ({
     '<': '&lt;',
@@ -46,11 +48,11 @@ function startServer() {
     try {
       const data = await fs.readFile(options.input, 'utf8');
 
-      // Пропускаємо порожні рядки та парсимо JSON
+      // прибираємо порожні рядки
       const flights = data
-        .trim()
         .split('\n')
-        .filter(line => line.trim().length > 0)
+        .map(line => line.trim())
+        .filter(line => line.length > 0)
         .map(line => JSON.parse(line));
 
       const url = new URL(req.url, `http://${req.headers.host}`);
@@ -62,22 +64,23 @@ function startServer() {
         filteredFlights = flights.filter(f => f.AIR_TIME > parseInt(airtimeMin));
       }
 
-      // Побудова валідного XML
+      
       let xmlData = '<?xml version="1.0" encoding="UTF-8"?>\n<flights>\n';
-      filteredFlights.forEach(flight => {
+      filteredFlights.forEach(f => {
         xmlData += '  <flight>\n';
-        if (dateParam) xmlData += `    <date>${escapeXml(flight.FL_DATE)}</date>\n`;
-        xmlData += `    <air_time>${flight.AIR_TIME}</air_time>\n`;
-        xmlData += `    <distance>${flight.DISTANCE}</distance>\n`;
+        if (dateParam) xmlData += `    <date>${escapeXml(f.FL_DATE)}</date>\n`;
+        xmlData += `    <air_time>${f.AIR_TIME}</air_time>\n`;
+        xmlData += `    <distance>${f.DISTANCE}</distance>\n`;
         xmlData += '  </flight>\n';
       });
       xmlData += '</flights>';
 
+     
       res.writeHead(200, { 'Content-Type': 'application/xml' });
       res.end(xmlData);
 
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error while processing request:', error);
       res.writeHead(500, { 'Content-Type': 'text/plain' });
       res.end('Internal Server Error');
     }
@@ -87,9 +90,3 @@ function startServer() {
     console.log(`Server is running on http://${options.host}:${options.port}`);
   });
 }
-
-
-
-
-
-
