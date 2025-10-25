@@ -9,7 +9,7 @@
   },
   "keywords": ["http", "server", "nodejs"],
   "author": "Dmytro bc2025-4",
-  "license": "ISC"
+  "license": "ISC",
   "dependencies": {
   "commander": "^14.0.2"
 }
