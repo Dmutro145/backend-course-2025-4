@@ -107,8 +107,8 @@ function startServer() {
     console.error('Помилка сервера:', err.message);
   });
 }
+startServer();
 
-startServer().catch(console.error);
 
 
 
