@@ -11,8 +11,7 @@
   "author": "Dmytro bc2025-4",
   "license": "ISC",
   "dependencies": {
-  "commander": "^14.0.2"
-  "fast-xml-parser": "^4.4.1"
-}
-
+    "commander": "^14.0.2",
+    "fast-xml-parser": "^4.4.1"
+  }
 }
