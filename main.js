@@ -15,6 +15,19 @@ const options = program.opts();
 
 const options = program.opts();
 
+
+const options = program.opts();
+
+console.log('DEBUG: Options received:', options); // Додайте цей рядок
+
+// Явна перевірка обов'язкових параметрів
+if (!options.input || !options.host || !options.port) {
+  console.error('Error: Missing required parameters');
+  console.error('Usage: node main.js -i <file> -h <host> -p <port>');
+  process.exit(1);
+}
+
+console.log('DEBUG: All parameters are present'); // Додайте цей рядок
 // Явна перевірка обов'язкових параметрів
 if (!options.input || !options.host || !options.port) {
   console.error('Error: Missing required parameters');
@@ -85,5 +98,6 @@ function startServer() {
     console.log(`Server is running on http://${options.host}:${options.port}`);
   });
 }
+
 
 
