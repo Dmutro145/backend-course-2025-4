@@ -8,6 +8,6 @@
     "dev": "nodemon main.js"
   },
   "keywords": ["http", "server", "nodejs"],
-  "author": "Дмитро bc2025-4",
+  "author": "Dmytro bc2025-4",
   "license": "ISC"
 }
