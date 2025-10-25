@@ -5,7 +5,6 @@ const { XMLBuilder } = require('fast-xml-parser');
 
 const program = new Command();
 
-// Налаштування параметрів командного рядка
 program
   .requiredOption('-i, --input <path>', 'шлях до JSON файлу')
   .requiredOption('-h, --host <address>', 'адреса сервера')
@@ -14,7 +13,6 @@ program
 program.parse(process.argv);
 const options = program.opts();
 
-// Перевірка наявності файлу
 async function checkFileExists() {
   try {
     await fs.access(options.input);
@@ -24,21 +22,33 @@ async function checkFileExists() {
   }
 }
 
-// АСИНХРОННЕ читання JSON файлу
 async function readFlightsData() {
   try {
     const data = await fs.readFile(options.input, 'utf8');
     const lines = data.trim().split('\n');
-    return lines.map(line => JSON.parse(line));
+    const flights = lines.map(line => {
+      try {
+        return JSON.parse(line);
+      } catch (e) {
+        return null;
+      }
+    }).filter(flight => flight !== null);
+    
+    console.log(`Завантажено ${flights.length} записів`);
+    return flights;
   } catch (error) {
     console.error('Помилка читання файлу:', error.message);
     return [];
   }
 }
 
-// Фільтрація даних
 function filterFlights(flights, queryParams) {
-  let filtered = [...flights];
+  let filtered = flights.filter(flight => 
+    flight.AIR_TIME !== undefined && 
+    flight.AIR_TIME !== null &&
+    flight.DISTANCE !== undefined &&
+    flight.DISTANCE !== null
+  );
   
   if (queryParams.airtime_min) {
     const minTime = parseFloat(queryParams.airtime_min);
@@ -48,9 +58,11 @@ function filterFlights(flights, queryParams) {
   return filtered;
 }
 
-// Генерація XML
 function generateXML(flights, queryParams) {
-  const builder = new XMLBuilder({ format: true });
+  const builder = new XMLBuilder({ 
+    format: true,
+    suppressEmptyNode: true
+  });
   
   const flightsData = flights.map(flight => {
     const flightObj = {
@@ -58,15 +70,16 @@ function generateXML(flights, queryParams) {
       distance: flight.DISTANCE
     };
     
-    if (queryParams.date === 'true') {
+    if (queryParams.date === 'true' && flight.FL_DATE) {
       flightObj.date = flight.FL_DATE;
     }
+    
     return { flight: flightObj };
   });
+
   return builder.build({ flights: { flight: flightsData } });
 }
 
-// Запуск сервера
 async function startServer() {
   const fileExists = await checkFileExists();
   if (!fileExists) {
@@ -74,11 +87,10 @@ async function startServer() {
     process.exit(1);
   }
 
-  const allFlights = await readFlightsData(); // Асинхронне читання файлу
+  const allFlights = await readFlightsData();
   console.log(`Завантажено ${allFlights.length} записів`);
 
   const server = http.createServer(async (req, res) => {
-    
     console.log(`Запит: ${req.url}`);
     
     const url = new URL(req.url, `http://${options.host}:${options.port}`);
@@ -88,7 +100,10 @@ async function startServer() {
       const filteredFlights = filterFlights(allFlights, queryParams);
       const xmlResponse = generateXML(filteredFlights, queryParams);
       
-      res.writeHead(200, { 'Content-Type': 'application/xml' });
+      res.writeHead(200, { 
+        'Content-Type': 'application/xml',
+        'Access-Control-Allow-Origin': '*'
+      });
       res.end(xmlResponse);
       
       console.log(`Відправлено ${filteredFlights.length} записів`);
@@ -97,7 +112,6 @@ async function startServer() {
       res.writeHead(500, { 'Content-Type': 'text/plain' });
       res.end('Помилка сервера');
     }
-    
   });
 
   server.listen(options.port, options.host, () => {
@@ -112,6 +126,5 @@ async function startServer() {
 }
 
 startServer().catch(console.error);
-
 
 
