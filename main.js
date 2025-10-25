@@ -1,4 +1,4 @@
-cconst { Command } = require('commander');
+const { Command } = require('commander');
 const http = require('http');
 const fs = require('fs').promises;
 
@@ -11,7 +11,6 @@ program
   .parse(process.argv);
 
 const options = program.opts();
-
 console.log('DEBUG: Options received:', options);
 
 if (!options.input || !options.host || !options.port) {
@@ -19,7 +18,6 @@ if (!options.input || !options.host || !options.port) {
   process.exit(1);
 }
 
-// Перевіряємо наявність файлу та запускаємо сервер
 start();
 
 async function start() {
@@ -32,7 +30,7 @@ async function start() {
   }
 }
 
-// Функція для безпечного вставлення даних у XML
+// Функція для безпечного вставлення значень у XML
 function escapeXml(unsafe) {
   return unsafe.replace(/[<>&'"]/g, c => ({
     '<': '&lt;',
@@ -48,7 +46,6 @@ function startServer() {
     try {
       const data = await fs.readFile(options.input, 'utf8');
 
-      // Парсимо JSON, пропускаючи порожні рядки
       const flights = data
         .split('\n')
         .map(line => line.trim())
@@ -64,7 +61,7 @@ function startServer() {
         filteredFlights = flights.filter(f => f.AIR_TIME > parseInt(airtimeMin));
       }
 
-      // Створюємо **один кореневий тег <flights>**
+      // Валідний XML з одним кореневим тегом <flights>
       let xmlData = '<?xml version="1.0" encoding="UTF-8"?>\n<flights>\n';
       filteredFlights.forEach(flight => {
         xmlData += '  <flight>\n';
