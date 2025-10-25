@@ -1,12 +1,13 @@
 {
-  "name": "data",
+  "name": "backend-course-2025-4",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Лабораторна робота №4 - HTTP сервер",
+  "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node main.js",
+    "dev": "nodemon main.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["http", "server", "nodejs"],
+  "author": "Дмитро bc2025-4",
   "license": "ISC"
 }
