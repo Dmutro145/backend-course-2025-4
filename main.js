@@ -53,28 +53,27 @@ function startServer() {
         filteredFlights = flights.filter(flight => flight.AIR_TIME > parseInt(airtimeMin));
       }
       
-const flightsArray = filteredFlights.map(flight => {
-  const flightData = {
-    air_time: flight.AIR_TIME,
-    distance: flight.DISTANCE
-  };
+// Ручна побудова XML - гарантовано працює
+let xmlData = `<?xml version="1.0" encoding="UTF-8"?>
+<flights>
+`;
+
+// Додаємо кожен рейс всередину одного тегу <flights>
+filteredFlights.forEach(flight => {
+  xmlData += `  <flight>
+`;
   if (dateParam) {
-    flightData.date = flight.FL_DATE;
+    xmlData += `    <date>${flight.FL_DATE}</date>
+`;
   }
-  return flightData;
+  xmlData += `    <air_time>${flight.AIR_TIME}</air_time>
+    <distance>${flight.DISTANCE}</distance>
+  </flight>
+`;
 });
 
-const xmlBuilder = new XMLBuilder({
-  ignoreAttributes: false,
-  format: true
-});
-
-// Створюємо ОДИН кореневий елемент flights з усіма flight всередині
-const xmlData = xmlBuilder.build({ 
-  flights: {
-    flight: flightsArray
-  }
-});
+// Закриваємо кореневий тег
+xmlData += `</flights>`;
       res.writeHead(200, { 'Content-Type': 'application/xml' });
       res.end(xmlData);
       
@@ -89,6 +88,7 @@ const xmlData = xmlBuilder.build({
     console.log(`Server is running on http://${options.host}:${options.port}`);
   });
 }
+
 
 
 
