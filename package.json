@@ -12,8 +12,6 @@
   "license": "ISC",
   "dependencies": {
     "commander": "^14.0.2",
-    "fast-xml-parser": "^4.4.1",
-    "xml-parser": "^1.2.1",
-    "nodemon": "^3.0.1"
+    "fast-xml-parser": "^4.4.1"
   }
 }
