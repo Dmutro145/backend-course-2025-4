@@ -2,6 +2,7 @@ const { Command } = require('commander');
 const http = require('http');
 const fs = require('fs').promises;
 const { XMLBuilder } = require('fast-xml-parser');
+const builder = new XMLBuilder({ format: true });
 
 const program = new Command();
 
@@ -108,6 +109,7 @@ function startServer() {
 }
 
 startServer().catch(console.error);
+
 
 
 
