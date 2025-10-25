@@ -1,3 +1,4 @@
+cat > package.json << EOF
 {
   "name": "backend-course-2025-4",
   "version": "1.0.0",
@@ -13,5 +14,9 @@
   "dependencies": {
     "commander": "^14.0.2",
     "fast-xml-parser": "^4.4.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
   }
 }
+EOF
