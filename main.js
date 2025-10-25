@@ -45,9 +45,7 @@ async function readFlightsData() {
 function filterFlights(flights, queryParams) {
   let filtered = flights.filter(flight => 
     flight.AIR_TIME !== undefined && 
-    flight.AIR_TIME !== null &&
-    flight.DISTANCE !== undefined &&
-    flight.DISTANCE !== null
+    flight.DISTANCE !== undefined
   );
   
   if (queryParams.airtime_min) {
@@ -65,19 +63,34 @@ function generateXML(flights, queryParams) {
   });
   
   const flightsData = flights.map(flight => {
-    const flightObj = {
-      air_time: flight.AIR_TIME,
-      distance: flight.DISTANCE
-    };
+    const flightObj = {};
     
-    if (queryParams.date === 'true' && flight.FL_DATE) {
+    // Обов'язкові поля
+    if (flight.AIR_TIME !== undefined) {
+      flightObj.air_time = flight.AIR_TIME;
+    }
+    if (flight.DISTANCE !== undefined) {
+      flightObj.distance = flight.DISTANCE;
+    }
+    
+    // Опціональне поле
+    if (queryParams.date === 'true' && flight.FL_DATE !== undefined) {
       flightObj.date = flight.FL_DATE;
     }
     
-    return { flight: flightObj };
+    return flightObj;
   });
 
-  return builder.build({ flights: { flight: flightsData } });
+  // Фікс: правильна структура XML
+  const xmlObj = {
+    flights: {
+      flight: flightsData
+    }
+  };
+
+  const xml = builder.build(xmlObj);
+  console.log('Згенерований XML:', xml); // Для дебагу
+  return xml;
 }
 
 async function startServer() {
@@ -88,12 +101,11 @@ async function startServer() {
   }
 
   const allFlights = await readFlightsData();
-  console.log(`Завантажено ${allFlights.length} записів`);
 
   const server = http.createServer(async (req, res) => {
     console.log(`Запит: ${req.url}`);
     
-    const url = new URL(req.url, `http://${options.host}:${options.port}`);
+    const url = new URL(req.url, `http://${req.headers.host}`);
     const queryParams = Object.fromEntries(url.searchParams);
     
     try {
@@ -101,8 +113,7 @@ async function startServer() {
       const xmlResponse = generateXML(filteredFlights, queryParams);
       
       res.writeHead(200, { 
-        'Content-Type': 'application/xml',
-        'Access-Control-Allow-Origin': '*'
+        'Content-Type': 'application/xml; charset=utf-8'
       });
       res.end(xmlResponse);
       
@@ -116,7 +127,6 @@ async function startServer() {
 
   server.listen(options.port, options.host, () => {
     console.log(`Сервер запущено на http://${options.host}:${options.port}`);
-    console.log(`Використовується файл: ${options.input}`);
     console.log('Доступні параметри: ?date=true & ?airtime_min=X');
   });
 
@@ -126,5 +136,8 @@ async function startServer() {
 }
 
 startServer().catch(console.error);
+
+startServer().catch(console.error);
+
 
 
