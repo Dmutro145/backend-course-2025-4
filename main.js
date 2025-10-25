@@ -53,20 +53,20 @@ function startServer() {
         filteredFlights = flights.filter(flight => flight.AIR_TIME > parseInt(airtimeMin));
       }
       
-      const result = filteredFlights.map(flight => {
-        const flightData = {};
-        if (dateParam) flightData.date = flight.FL_DATE;
-        flightData.air_time = flight.AIR_TIME;
-        flightData.distance = flight.DISTANCE;
-        return { flight: flightData };
-      });
-      
-      const xmlBuilder = new XMLBuilder({
-        ignoreAttributes: false,
-        format: true
-      });
-      
-      const xmlData = xmlBuilder.build({ flights: result });
+     const result = filteredFlights.map(flight => {
+  const flightData = {};
+  if (dateParam) flightData.date = flight.FL_DATE;
+  flightData.air_time = flight.AIR_TIME;
+  flightData.distance = flight.DISTANCE;
+  return { flight: flightData };
+});
+
+const xmlBuilder = new XMLBuilder({
+  ignoreAttributes: false,
+  format: true
+});
+
+const xmlData = xmlBuilder.build({ flights: result });
       
       res.writeHead(200, { 'Content-Type': 'application/xml' });
       res.end(xmlData);
@@ -82,3 +82,4 @@ function startServer() {
     console.log(`Server is running on http://${options.host}:${options.port}`);
   });
 }
+
