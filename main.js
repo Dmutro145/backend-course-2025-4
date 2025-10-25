@@ -1,4 +1,4 @@
-const { Command } = require('commander');
+cconst { Command } = require('commander');
 const http = require('http');
 const fs = require('fs').promises;
 
@@ -11,15 +11,15 @@ program
   .parse(process.argv);
 
 const options = program.opts();
+
 console.log('DEBUG: Options received:', options);
 
-// Перевірка параметрів
 if (!options.input || !options.host || !options.port) {
   console.error('Error: Missing required parameters');
   process.exit(1);
 }
 
-// Запуск сервера після перевірки файлу
+// Перевіряємо наявність файлу та запускаємо сервер
 start();
 
 async function start() {
@@ -32,6 +32,7 @@ async function start() {
   }
 }
 
+// Функція для безпечного вставлення даних у XML
 function escapeXml(unsafe) {
   return unsafe.replace(/[<>&'"]/g, c => ({
     '<': '&lt;',
@@ -47,7 +48,7 @@ function startServer() {
     try {
       const data = await fs.readFile(options.input, 'utf8');
 
-      // прибираємо порожні рядки
+      // Парсимо JSON, пропускаючи порожні рядки
       const flights = data
         .split('\n')
         .map(line => line.trim())
@@ -63,9 +64,8 @@ function startServer() {
         filteredFlights = flights.filter(f => f.AIR_TIME > parseInt(airtimeMin));
       }
 
-      // Побудова XML вручну
+      // Створюємо **один кореневий тег <flights>**
       let xmlData = '<?xml version="1.0" encoding="UTF-8"?>\n<flights>\n';
-
       filteredFlights.forEach(flight => {
         xmlData += '  <flight>\n';
         if (dateParam) xmlData += `    <date>${escapeXml(flight.FL_DATE)}</date>\n`;
@@ -73,8 +73,6 @@ function startServer() {
         xmlData += `    <distance>${flight.DISTANCE}</distance>\n`;
         xmlData += '  </flight>\n';
       });
-
-      // Закриваємо лише один раз
       xmlData += '</flights>';
 
       res.writeHead(200, { 'Content-Type': 'application/xml' });
@@ -91,4 +89,3 @@ function startServer() {
     console.log(`Server is running on http://${options.host}:${options.port}`);
   });
 }
-
