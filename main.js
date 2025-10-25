@@ -58,41 +58,30 @@ function filterFlights(flights, queryParams) {
 
 function generateXML(flights, queryParams) {
   const builder = new XMLBuilder({ 
-    format: true,
-    suppressEmptyNode: true
+    format: true
   });
   
   const flightsData = flights.map(flight => {
-    const flightObj = {};
+    const flightObj = {
+      air_time: flight.AIR_TIME,
+      distance: flight.DISTANCE
+    };
     
-    // Обов'язкові поля
-    if (flight.AIR_TIME !== undefined) {
-      flightObj.air_time = flight.AIR_TIME;
-    }
-    if (flight.DISTANCE !== undefined) {
-      flightObj.distance = flight.DISTANCE;
-    }
-    
-    // Опціональне поле
-    if (queryParams.date === 'true' && flight.FL_DATE !== undefined) {
+    if (queryParams.date === 'true' && flight.FL_DATE) {
       flightObj.date = flight.FL_DATE;
     }
     
-    return flightObj;
+    return { flight: flightObj };
   });
 
-  // Фікс: правильна структура XML
   const xmlObj = {
     flights: {
       flight: flightsData
     }
   };
 
-  const xml = builder.build(xmlObj);
-  console.log('Згенерований XML:', xml); // Для дебагу
-  return xml;
+  return builder.build(xmlObj);
 }
-
 async function startServer() {
   const fileExists = await checkFileExists();
   if (!fileExists) {
@@ -138,6 +127,7 @@ async function startServer() {
 startServer().catch(console.error);
 
  
+
 
 
 
