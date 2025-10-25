@@ -13,9 +13,14 @@ program
 
 const options = program.opts();
 
-// Перевірка наявності файлу
 const options = program.opts();
 
+// Явна перевірка обов'язкових параметрів
+if (!options.input || !options.host || !options.port) {
+  console.error('Error: Missing required parameters');
+  console.error('Usage: node main.js -i <file> -h <host> -p <port>');
+  process.exit(1);
+}
 // Асинхронна функція для запуску
 async function start() {
   try {
@@ -80,4 +85,5 @@ function startServer() {
     console.log(`Server is running on http://${options.host}:${options.port}`);
   });
 }
+
 
