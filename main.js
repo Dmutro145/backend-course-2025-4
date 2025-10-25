@@ -1,7 +1,6 @@
 const { Command } = require('commander');
 const http = require('http');
 const fs = require('fs').promises;
-const { XMLBuilder } = require('fast-xml-parser');
 
 const program = new Command();
 
@@ -11,72 +10,72 @@ program
   .requiredOption('-p, --port <number>', 'порт сервера')
   .parse(process.argv);
 
-const options = program.opts(); // ← ЛИШЕ ОДИН РАЗ!
-
+const options = program.opts();
 console.log('DEBUG: Options received:', options);
 
-// Перевірка обов'язкових параметрів
 if (!options.input || !options.host || !options.port) {
   console.error('Error: Missing required parameters');
-  console.error('Usage: node main.js -i <file> -h <host> -p <port>');
   process.exit(1);
 }
 
-console.log('DEBUG: All parameters are present');
-
-// Асинхронна функція для запуску
 async function start() {
   try {
     await fs.access(options.input);
     startServer();
   } catch (error) {
-    console.error('Cannot find input file');
+    console.error('Cannot find input file:', options.input);
     process.exit(1);
   }
 }
 
-// Запуск програми
 start();
+
+// Функція для безпечного вставлення значень у XML
+function escapeXml(unsafe) {
+  return unsafe.replace(/[<>&'"]/g, c => ({
+    '<': '&lt;',
+    '>': '&gt;',
+    '&': '&amp;',
+    "'": '&apos;',
+    '"': '&quot;'
+  }[c]));
+}
 
 function startServer() {
   const server = http.createServer(async (req, res) => {
     try {
       const data = await fs.readFile(options.input, 'utf8');
-      const flights = data.trim().split('\n').map(line => JSON.parse(line));
-      
+
+      // Пропускаємо порожні рядки та парсимо JSON
+      const flights = data
+        .trim()
+        .split('\n')
+        .filter(line => line.trim().length > 0)
+        .map(line => JSON.parse(line));
+
       const url = new URL(req.url, `http://${req.headers.host}`);
       const dateParam = url.searchParams.get('date') === 'true';
       const airtimeMin = url.searchParams.get('airtime_min');
-      
+
       let filteredFlights = flights;
       if (airtimeMin) {
-        filteredFlights = flights.filter(flight => flight.AIR_TIME > parseInt(airtimeMin));
+        filteredFlights = flights.filter(f => f.AIR_TIME > parseInt(airtimeMin));
       }
-      
-// Ручна побудова XML - гарантовано працює
-let xmlData = `<?xml version="1.0" encoding="UTF-8"?>
-<flights>
-`;
 
-// Додаємо кожен рейс всередину одного тегу <flights>
-filteredFlights.forEach(flight => {
-  xmlData += `  <flight>
-`;
-  if (dateParam) {
-    xmlData += `    <date>${flight.FL_DATE}</date>
-`;
-  }
-  xmlData += `    <air_time>${flight.AIR_TIME}</air_time>
-    <distance>${flight.DISTANCE}</distance>
-  </flight>
-`;
-});
+      // Побудова валідного XML
+      let xmlData = '<?xml version="1.0" encoding="UTF-8"?>\n<flights>\n';
+      filteredFlights.forEach(flight => {
+        xmlData += '  <flight>\n';
+        if (dateParam) xmlData += `    <date>${escapeXml(flight.FL_DATE)}</date>\n`;
+        xmlData += `    <air_time>${flight.AIR_TIME}</air_time>\n`;
+        xmlData += `    <distance>${flight.DISTANCE}</distance>\n`;
+        xmlData += '  </flight>\n';
+      });
+      xmlData += '</flights>';
 
-// Закриваємо кореневий тег
-xmlData += `</flights>`;
       res.writeHead(200, { 'Content-Type': 'application/xml' });
       res.end(xmlData);
-      
+
     } catch (error) {
       console.error('Error:', error);
       res.writeHead(500, { 'Content-Type': 'text/plain' });
@@ -88,6 +87,7 @@ xmlData += `</flights>`;
     console.log(`Server is running on http://${options.host}:${options.port}`);
   });
 }
+
 
 
 
