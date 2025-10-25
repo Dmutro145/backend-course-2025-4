@@ -53,12 +53,15 @@ function startServer() {
         filteredFlights = flights.filter(flight => flight.AIR_TIME > parseInt(airtimeMin));
       }
       
- const flightsData = filteredFlights.map(flight => {
-  const flightObj = {};
-  if (dateParam) flightObj.date = flight.FL_DATE;
-  flightObj.air_time = flight.AIR_TIME;
-  flightObj.distance = flight.DISTANCE;
-  return flightObj;
+const flightsArray = filteredFlights.map(flight => {
+  const flightData = {
+    air_time: flight.AIR_TIME,
+    distance: flight.DISTANCE
+  };
+  if (dateParam) {
+    flightData.date = flight.FL_DATE;
+  }
+  return flightData;
 });
 
 const xmlBuilder = new XMLBuilder({
@@ -66,9 +69,12 @@ const xmlBuilder = new XMLBuilder({
   format: true
 });
 
-// Правильна структура XML
-const xmlData = xmlBuilder.build({ flights: { flight: flightsData } });
-      
+// Створюємо ОДИН кореневий елемент flights з усіма flight всередині
+const xmlData = xmlBuilder.build({ 
+  flights: {
+    flight: flightsArray
+  }
+});
       res.writeHead(200, { 'Content-Type': 'application/xml' });
       res.end(xmlData);
       
@@ -83,6 +89,7 @@ const xmlData = xmlBuilder.build({ flights: { flight: flightsData } });
     console.log(`Server is running on http://${options.host}:${options.port}`);
   });
 }
+
 
 
 
