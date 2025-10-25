@@ -11,7 +11,6 @@ program
   .parse(process.argv);
 
 const options = program.opts();
-
 console.log('DEBUG: Options received:', options);
 
 // Перевірка параметрів
@@ -64,18 +63,20 @@ function startServer() {
         filteredFlights = flights.filter(f => f.AIR_TIME > parseInt(airtimeMin));
       }
 
-      
+      // Побудова XML вручну
       let xmlData = '<?xml version="1.0" encoding="UTF-8"?>\n<flights>\n';
-      filteredFlights.forEach(f => {
+
+      filteredFlights.forEach(flight => {
         xmlData += '  <flight>\n';
-        if (dateParam) xmlData += `    <date>${escapeXml(f.FL_DATE)}</date>\n`;
-        xmlData += `    <air_time>${f.AIR_TIME}</air_time>\n`;
-        xmlData += `    <distance>${f.DISTANCE}</distance>\n`;
+        if (dateParam) xmlData += `    <date>${escapeXml(flight.FL_DATE)}</date>\n`;
+        xmlData += `    <air_time>${flight.AIR_TIME}</air_time>\n`;
+        xmlData += `    <distance>${flight.DISTANCE}</distance>\n`;
         xmlData += '  </flight>\n';
       });
+
+      // Закриваємо лише один раз
       xmlData += '</flights>';
 
-     
       res.writeHead(200, { 'Content-Type': 'application/xml' });
       res.end(xmlData);
 
@@ -90,3 +91,4 @@ function startServer() {
     console.log(`Server is running on http://${options.host}:${options.port}`);
   });
 }
+
