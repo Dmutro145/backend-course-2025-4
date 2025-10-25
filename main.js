@@ -11,29 +11,19 @@ program
   .requiredOption('-p, --port <number>', 'порт сервера')
   .parse(process.argv);
 
-const options = program.opts();
+const options = program.opts(); // ← ЛИШЕ ОДИН РАЗ!
 
-const options = program.opts();
+console.log('DEBUG: Options received:', options);
 
-
-const options = program.opts();
-
-console.log('DEBUG: Options received:', options); // Додайте цей рядок
-
-// Явна перевірка обов'язкових параметрів
+// Перевірка обов'язкових параметрів
 if (!options.input || !options.host || !options.port) {
   console.error('Error: Missing required parameters');
   console.error('Usage: node main.js -i <file> -h <host> -p <port>');
   process.exit(1);
 }
 
-console.log('DEBUG: All parameters are present'); // Додайте цей рядок
-// Явна перевірка обов'язкових параметрів
-if (!options.input || !options.host || !options.port) {
-  console.error('Error: Missing required parameters');
-  console.error('Usage: node main.js -i <file> -h <host> -p <port>');
-  process.exit(1);
-}
+console.log('DEBUG: All parameters are present');
+
 // Асинхронна функція для запуску
 async function start() {
   try {
@@ -51,22 +41,18 @@ start();
 function startServer() {
   const server = http.createServer(async (req, res) => {
     try {
-      // Читання JSON файлу
       const data = await fs.readFile(options.input, 'utf8');
       const flights = data.trim().split('\n').map(line => JSON.parse(line));
       
-      // Отримання параметрів запиту
       const url = new URL(req.url, `http://${req.headers.host}`);
       const dateParam = url.searchParams.get('date') === 'true';
       const airtimeMin = url.searchParams.get('airtime_min');
       
-      // Фільтрація даних
       let filteredFlights = flights;
       if (airtimeMin) {
         filteredFlights = flights.filter(flight => flight.AIR_TIME > parseInt(airtimeMin));
       }
       
-      // Формування результату
       const result = filteredFlights.map(flight => {
         const flightData = {};
         if (dateParam) flightData.date = flight.FL_DATE;
@@ -75,7 +61,6 @@ function startServer() {
         return { flight: flightData };
       });
       
-      // Створення XML
       const xmlBuilder = new XMLBuilder({
         ignoreAttributes: false,
         format: true
@@ -83,7 +68,6 @@ function startServer() {
       
       const xmlData = xmlBuilder.build({ flights: result });
       
-      // Відправка відповіді
       res.writeHead(200, { 'Content-Type': 'application/xml' });
       res.end(xmlData);
       
@@ -98,6 +82,3 @@ function startServer() {
     console.log(`Server is running on http://${options.host}:${options.port}`);
   });
 }
-
-
-
