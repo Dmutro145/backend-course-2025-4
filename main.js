@@ -14,14 +14,21 @@ program
 const options = program.opts();
 
 // Перевірка наявності файлу
-fs.access(options.input)
-  .then(() => {
+const options = program.opts();
+
+// Асинхронна функція для запуску
+async function start() {
+  try {
+    await fs.access(options.input);
     startServer();
-  })
-  .catch(() => {
+  } catch (error) {
     console.error('Cannot find input file');
     process.exit(1);
-  });
+  }
+}
+
+// Запуск програми
+start();
 
 function startServer() {
   const server = http.createServer(async (req, res) => {
@@ -73,3 +80,4 @@ function startServer() {
     console.log(`Server is running on http://${options.host}:${options.port}`);
   });
 }
+
