@@ -53,7 +53,7 @@ function startServer() {
         filteredFlights = flights.filter(flight => flight.AIR_TIME > parseInt(airtimeMin));
       }
       
-     const result = filteredFlights.map(flight => {
+  const flightsData = filteredFlights.map(flight => {
   const flightData = {};
   if (dateParam) flightData.date = flight.FL_DATE;
   flightData.air_time = flight.AIR_TIME;
@@ -66,7 +66,8 @@ const xmlBuilder = new XMLBuilder({
   format: true
 });
 
-const xmlData = xmlBuilder.build({ flights: result });
+// Створюємо один XML документ з усіма рейсами
+const xmlData = xmlBuilder.build({ flights: { flight: flightsData.map(f => f.flight) } });
       
       res.writeHead(200, { 'Content-Type': 'application/xml' });
       res.end(xmlData);
@@ -82,4 +83,5 @@ const xmlData = xmlBuilder.build({ flights: result });
     console.log(`Server is running on http://${options.host}:${options.port}`);
   });
 }
+
 
